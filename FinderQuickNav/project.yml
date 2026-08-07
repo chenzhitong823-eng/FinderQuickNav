@@ -1,0 +1,70 @@
+name: FinderQuickNav
+
+options:
+  bundleIdPrefix: local.finderquicknav
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  xcodeVersion: "16.4"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "FinderQuickNav Local Signing"
+    DEVELOPMENT_TEAM: ""
+    ENABLE_HARDENED_RUNTIME: NO
+
+targets:
+  FinderQuickNav:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+      - path: Shared
+    resources:
+      - path: App/Assets.xcassets
+      - path: App/NewFile/Templates
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: local.finderquicknav.app
+        PRODUCT_NAME: FinderQuickNav
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/FinderQuickNav.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_APP_SANDBOX: NO
+    dependencies:
+      - target: FinderQuickNavExtension
+        embed: true
+
+  FinderQuickNavExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Extension
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: local.finderquicknav.app.extension
+        PRODUCT_NAME: FinderQuickNavExtension
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Extension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Extension/FinderQuickNavExtension.entitlements
+        ENABLE_APP_SANDBOX: YES
+        SKIP_INSTALL: YES
+
+schemes:
+  FinderQuickNav:
+    build:
+      targets:
+        FinderQuickNav: all
+    run:
+      config: Debug
+    archive:
+      config: Release

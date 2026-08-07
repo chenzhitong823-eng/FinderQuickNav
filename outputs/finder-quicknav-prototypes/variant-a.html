@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 A — 浮动面板式 | Finder 快速导航原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#161622;color:#e0e0e0;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px}
+.back-link{color:#5e8af0;text-decoration:none;font-size:13px;margin-bottom:20px;align-self:flex-start}
+.proto-label{font-size:12px;color:#707088;margin-bottom:8px}
+.proto-label span{background:#5e8af0;color:white;padding:2px 8px;border-radius:8px;margin-right:6px}
+.finder-window{width:780px;background:#1c1c2a;border-radius:12px;border:1px solid #333348;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.5);position:relative}
+.finder-titlebar{background:#28283c;padding:12px 16px;display:flex;align-items:center;gap:8px}
+.traffic-lights{display:flex;gap:6px}
+.traffic-lights span{width:12px;height:12px;border-radius:50%}
+.tl-red{background:#ff5f57}.tl-yellow{background:#febc2e}.tl-green{background:#28c840}
+.finder-title{flex:1;text-align:center;font-size:13px;font-weight:500;color:#b0b0c0}
+.finder-toolbar{background:#222236;padding:8px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #2a2a44}
+.tb-btn{background:#333352;border:none;color:#c0c0d0;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+.tb-btn:hover{background:#3d3d60}
+.finder-body{display:flex;height:420px}
+.finder-sidebar{width:180px;background:#1e1e30;border-right:1px solid #2a2a44;padding:12px 0;overflow-y:auto}
+.sidebar-section{font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.5px;padding:6px 14px 2px}
+.sidebar-item{padding:6px 14px;font-size:12px;color:#b0b0c0;cursor:pointer;display:flex;align-items:center;gap:6px}
+.sidebar-item:hover{background:#2a2a44}
+.sidebar-item.active{background:#3a3a5c;color:white}
+.finder-content{flex:1;padding:20px;overflow-y:auto;position:relative}
+.finder-content h2{font-size:13px;color:#707088;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.file-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.file-item{display:flex;flex-direction:column;align-items:center;padding:12px 8px;border-radius:8px;cursor:pointer;transition:background .15s}
+.file-item:hover{background:#2a2a44}
+.file-icon{font-size:36px;margin-bottom:6px}
+.file-name{font-size:11px;color:#c0c0d0;text-align:center;word-break:break-all}
+.context-menu{display:none;position:absolute;background:#2a2a3e;border:1px solid #3a3a4e;border-radius:10px;padding:6px 0;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:100;backdrop-filter:blur(20px)}
+.context-menu.show{display:block}
+.ctx-item{padding:7px 16px;font-size:12px;color:#d0d0e0;cursor:pointer;display:flex;align-items:center;gap:10px}
+.ctx-item:hover{background:#3a3a5c}
+.ctx-item .shortcut{color:#707088;margin-left:auto;font-size:11px}
+.ctx-divider{border-top:1px solid #3a3a4e;margin:4px 0}
+.ctx-disabled{color:#606068;pointer-events:none}
+.floating-panel{display:none;position:absolute;background:#2a2a3e;border:1px solid #3a3a52;border-radius:14px;padding:16px;min-width:280px;box-shadow:0 12px 48px rgba(0,0,0,.7);z-index:200;backdrop-filter:blur(24px);animation:panelIn .2s ease-out}
+.floating-panel.show{display:block}
+@keyframes panelIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.fp-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.fp-back,.fp-up{background:#333350;border:none;color:#c0c0d0;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.fp-back:hover,.fp-up:hover{background:#3d3d62}
+.fp-back.disabled,.fp-up.disabled{opacity:.4;pointer-events:none}
+.fp-path{margin:10px 0;padding:8px 12px;background:#222236;border-radius:8px;font-size:11px;color:#9090a8}
+.fp-path .path-seg{color:#5e8af0;cursor:pointer}
+.fp-path .path-sep{color:#505070;margin:0 2px}
+.fp-section-title{font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px;padding-left:2px}
+.fp-item{padding:7px 10px;font-size:12px;color:#d0d0e0;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:8px}
+.fp-item:hover{background:#333352}
+.fp-item .fp-item-icon{width:18px;text-align:center}
+.fp-bookmark{color:#5e8af0}
+.fp-divider{border-top:1px solid #3a3a4e;margin:8px 0}
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:150}
+.overlay.show{display:block}
+.instructions{background:#222238;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#9090a8;line-height:1.6}
+.instructions strong{color:#e0e0e0}
+.new-file-menu{display:none;position:absolute;background:#2a2a3e;border:1px solid #3a3a4e;border-radius:10px;padding:6px 0;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:100;animation:panelIn .15s ease-out}
+.new-file-menu.show{display:block}
+.nf-item{padding:7px 16px;font-size:12px;color:#d0d0e0;cursor:pointer;display:flex;align-items:center;gap:10px}
+.nf-item:hover{background:#3a3a5c}
+</style>
+</head>
+<body>
+<a class="back-link" href="index.html">← 返回对比页</a>
+<div class="proto-label"><span>方案 A</span> 浮动面板式 — 可交互原型</div>
+<div class="instructions"><strong>操作说明：</strong>在 Finder 空白区域<strong>右键点击</strong>打开菜单 → 点击"快速导航"打开浮动面板 → 面板内可点击返回/上级/收藏/最近。再右键空白区域可以打开"新建文件"菜单。<strong>点击遮罩层或面板外区域关闭。</strong></div>
+<div class="finder-window" id="finderWindow">
+<div class="finder-titlebar">
+<div class="traffic-lights"><span class="tl-red"></span><span class="tl-yellow"></span><span class="tl-green"></span></div>
+<div class="finder-title">CodexProjects</div>
+</div>
+<div class="finder-toolbar">
+<button class="tb-btn">←</button><button class="tb-btn">→</button>
+<span style="font-size:12px;color:#b0b0c0;margin-left:8px">~/Documents/Codex/CodexProjects</span>
+</div>
+<div class="finder-body">
+<div class="finder-sidebar">
+<div class="sidebar-section">个人收藏</div>
+<div class="sidebar-item"><span>📁</span> CodexProjects</div>
+<div class="sidebar-item"><span>📓</span> Obsidian Vault</div>
+<div class="sidebar-item"><span>📝</span> 课程作业</div>
+<div class="sidebar-section">iCloud</div>
+<div class="sidebar-item"><span>☁️</span> iCloud Drive</div>
+<div class="sidebar-section">位置</div>
+<div class="sidebar-item active"><span>🏠</span> mac</div>
+</div>
+<div class="finder-content" id="finderContent" oncontextmenu="return false">
+<h2>CodexProjects — 文件夹内容</h2>
+<div class="file-grid">
+<div class="file-item"><div class="file-icon">📁</div><div class="file-name">WebGIS</div></div>
+<div class="file-item"><div class="file-icon">📁</div><div class="file-name">MATLAB实验</div></div>
+<div class="file-item"><div class="file-icon">📁</div><div class="file-name">MineRadio</div></div>
+<div class="file-item"><div class="file-icon">📁</div><div class="file-name">OpenCodeX</div></div>
+<div class="file-item"><div class="file-icon">📄</div><div class="file-name">README.md</div></div>
+<div class="file-item"><div class="file-icon">📄</div><div class="file-name">.gitignore</div></div>
+<div class="file-item"><div class="file-icon">📄</div><div class="file-name">AGENTS.md</div></div>
+<div class="file-item"><div class="file-icon">⚙️</div><div class="file-name">config.json</div></div>
+</div>
+</div>
+</div>
+</div>
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<div class="context-menu" id="contextMenu"></div>
+<div class="new-file-menu" id="newFileMenu"></div>
+<div class="floating-panel" id="floatingPanel"></div>
+<script>
+const finderContent = document.getElementById('finderContent');
+const contextMenu = document.getElementById('contextMenu');
+const newFileMenu = document.getElementById('newFileMenu');
+const floatingPanel = document.getElementById('floatingPanel');
+const overlay = document.getElementById('overlay');
+function closeAll() {
+  contextMenu.classList.remove('show');
+  newFileMenu.classList.remove('show');
+  floatingPanel.classList.remove('show');
+  overlay.classList.remove('show');
+}
+function buildContextMenu(x, y) {
+  contextMenu.innerHTML = `
+    <div class="ctx-item" onclick="showFloatingPanel(${x},${y})"><span>⚡</span> 快速导航<span class="shortcut">⌘N</span></div>
+    <div class="ctx-item" onclick="showNewFileMenu(${x},${y})"><span>📄</span> 新建文件<span class="shortcut">⌘⇧N</span></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item"><span>📋</span> 粘贴</div>
+    <div class="ctx-item"><span>🔍</span> 在终端中打开</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item"><span>ℹ️</span> 显示简介</div>
+  `;
+  contextMenu.style.left = Math.min(x, finderContent.offsetWidth - 210) + 'px';
+  contextMenu.style.top = Math.min(y, finderContent.offsetHeight - 240) + 'px';
+  contextMenu.classList.add('show');
+}
+function showNewFileMenu(x, y) {
+  contextMenu.classList.remove('show');
+  newFileMenu.innerHTML = `
+    <div class="nf-item"><span>📁</span> 新建文件夹</div>
+    <div class="nf-item"><span>📝</span> 文本文档 (.txt)</div>
+    <div class="nf-item"><span>📋</span> Markdown (.md)</div>
+    <div class="nf-item"><span>📄</span> Word 文档 (.docx)</div>
+    <div class="nf-item"><span>📊</span> Excel 表格 (.xlsx)</div>
+    <div class="nf-item"><span>📽️</span> PowerPoint (.pptx)</div>
+  `;
+  newFileMenu.style.left = Math.min(x + 10, finderContent.offsetWidth - 200) + 'px';
+  newFileMenu.style.top = Math.min(y + 10, finderContent.offsetHeight - 220) + 'px';
+  newFileMenu.classList.add('show');
+}
+function showFloatingPanel(cx, cy) {
+  contextMenu.classList.remove('show');
+  overlay.classList.add('show');
+  floatingPanel.innerHTML = `
+    <div class="fp-header">
+      <button class="fp-back" title="返回上一个位置"><span>←</span> 返回"下载"</button>
+      <button class="fp-up" title="上一级目录"><span>↑</span> 上一级"Codex"</button>
+    </div>
+    <div class="fp-path">
+      <span class="path-seg" style="color:#a0a0b8">~/</span><span class="path-sep">▸</span><span class="path-seg">Documents</span><span class="path-sep">▸</span><span class="path-seg">Codex</span><span class="path-sep">▸</span><span class="path-seg" style="color:white;font-weight:500">CodexProjects</span>
+    </div>
+    <div class="fp-divider"></div>
+    <div class="fp-section-title">⭐ 我的收藏</div>
+    <div class="fp-item"><span class="fp-item-icon">📁</span> Codex 项目<span style="margin-left:auto;font-size:10px;color:#606078">~/Documents/Codex</span></div>
+    <div class="fp-item"><span class="fp-item-icon">📓</span> Obsidian Vault<span style="margin-left:auto;font-size:10px;color:#606078">~/Documents/Obsidian Vault</span></div>
+    <div class="fp-item"><span class="fp-item-icon">📝</span> 课程作业<span style="margin-left:auto;font-size:10px;color:#606078">~/Documents/课程</span></div>
+    <div class="fp-item"><span class="fp-item-icon">🌐</span> WebGIS 项目<span style="margin-left:auto;font-size:10px;color:#606078">~/Documents/work/projects</span></div>
+    <div class="fp-divider"></div>
+    <div class="fp-section-title">🕐 最近访问</div>
+    <div class="fp-item"><span class="fp-item-icon">📁</span> 下载</div>
+    <div class="fp-item"><span class="fp-item-icon">📁</span> MATLAB实验</div>
+    <div class="fp-item"><span class="fp-item-icon">📁</span> WebGIS</div>
+    <div class="fp-divider"></div>
+    <div class="fp-item fp-bookmark"><span class="fp-item-icon">☆</span> 收藏当前文件夹<span style="margin-left:auto;font-size:10px;color:#5e8af0">⌘D</span></div>
+    <div class="fp-item" style="color:#707088"><span class="fp-item-icon">⚙</span> 管理收藏…</div>
+  `;
+  const panelWidth = 300;
+  const panelHeight = 440;
+  let px = Math.min(cx, finderContent.offsetWidth - panelWidth - 10);
+  let py = Math.min(cy, finderContent.offsetHeight - panelHeight - 10);
+  px = Math.max(10, px);
+  py = Math.max(10, py);
+  floatingPanel.style.left = px + 'px';
+  floatingPanel.style.top = py + 'px';
+  floatingPanel.classList.add('show');
+}
+finderContent.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  closeAll();
+  const rect = finderContent.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  buildContextMenu(x, y);
+});
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.context-menu') && !e.target.closest('.new-file-menu') && !e.target.closest('.floating-panel') && !e.target.closest('#finderContent')) {
+    closeAll();
+  }
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeAll();
+});
+</script>
+</body></html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方案 C — 弹出卡片式 | Finder 快速导航原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#161622;color:#e0e0e0;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px}
+.back-link{color:#5e8af0;text-decoration:none;font-size:13px;margin-bottom:20px;align-self:flex-start}
+.proto-label{font-size:12px;color:#707088;margin-bottom:8px}
+.proto-label span{background:#5e8af0;color:white;padding:2px 8px;border-radius:8px;margin-right:6px}
+.finder-window{width:780px;background:#1c1c2a;border-radius:12px;border:1px solid #333348;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.5);position:relative}
+.finder-titlebar{background:#28283c;padding:12px 16px;display:flex;align-items:center;gap:8px}
+.traffic-lights{display:flex;gap:6px}
+.traffic-lights span{width:12px;height:12px;border-radius:50%}
+.tl-red{background:#ff5f57}.tl-yellow{background:#febc2e}.tl-green{background:#28c840}
+.finder-title{flex:1;text-align:center;font-size:13px;font-weight:500;color:#b0b0c0}
+.finder-toolbar{background:#222236;padding:8px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #2a2a44}
+.tb-btn{background:#333352;border:none;color:#c0c0d0;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+.tb-btn:hover{background:#3d3d60}
+.finder-body{display:flex;height:420px;position:relative}
+.finder-sidebar{width:180px;background:#1e1e30;border-right:1px solid #2a2a44;padding:12px 0;overflow-y:auto;flex-shrink:0}
+.sidebar-section{font-size:10px;color:#606078;text-transform:uppercase;letter-spacing:.5px;padding:6px 14px 2px}
+.sidebar-item{padding:6px 14px;font-size:12px;color:#b0b0c0;cursor:pointer;display:flex;align-items:center;gap:6px}
+.sidebar-item:hover{background:#2a2a44}
+.sidebar-item.active{background:#3a3a5c;color:white}
+.finder-content{flex:1;padding:20px;overflow-y:auto;position:relative}
+.finder-content h2{font-size:13px;color:#707088;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.file-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.file-item{display:flex;flex-direction:column;align-items:center;padding:12px 8px;border-radius:8px;cursor:pointer;transition:background .15s}
+.file-item:hover{background:#2a2a44}
+.file-icon{font-size:36px;margin-bottom:6px}
+.file-name{font-size:11px;color:#c0c0d0;text-align:center;word-break:break-all}
+.context-menu{display:none;position:absolute;background:#2a2a3e;border:1px solid #3a3a4e;border-radius:10px;padding:6px 0;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:100}
+.context-menu.show{display:block}
+.ctx-item{padding:7px 16px;font-size:12px;color:#d0d0e0;cursor:pointer;display:flex;align-items:center;gap:10px}
+.ctx-item:hover{background:#3a3a5c}
+.ctx-item .shortcut{color:#707088;margin-left:auto;font-size:11px}
+.ctx-divider{border-top:1px solid #3a3a4e;margin:4px 0}
+.popup-card{display:none;position:absolute;background:#252538;border:1px solid #3a3a52;border-radius:14px;padding:0;width:292px;box-shadow:0 16px 56px rgba(0,0,0,.75);z-index:200;animation:cardIn .2s cubic-bezier(.4,0,.2,1);overflow:visible}
+.popup-card.show{display:block}
+@keyframes cardIn{from{opacity:0;transform:translateY(-6px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.pc-top{background:#2a2a42;padding:11px 13px;display:flex;align-items:center;gap:9px;border-radius:14px 14px 0 0;cursor:grab;user-select:none}
+.pc-top:active{cursor:grabbing}
+.pc-drag{font-size:11px;color:#666682;letter-spacing:-2px}
+.pc-icon{font-size:21px}
+.pc-info{flex:1}
+.pc-name{font-size:13px;font-weight:600;color:white}
+.pc-path{font-size:10px;color:#8aa8f5;margin-top:2px;white-space:nowrap;overflow:visible;text-overflow:ellipsis;position:relative;cursor:help}
+.pc-path-compact{display:flex;align-items:center;gap:5px;color:#8aa8f5;overflow:hidden;text-overflow:ellipsis}
+.pc-path-tooltip{display:none;position:absolute;left:0;top:18px;z-index:3;width:268px;padding:8px 10px;background:#171725;border:1px solid #4b4b69;border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.55);color:#dce5ff;white-space:normal;line-height:1.45;word-break:break-all}
+.pc-path:hover .pc-path-tooltip{display:block}
+.pc-actions{display:flex;gap:6px;padding:9px 12px;background:#222236}
+.pc-action{flex:1;background:#2a2a40;border:none;color:#c0c0d0;padding:7px 3px;border-radius:7px;font-size:10px;cursor:pointer;text-align:center;transition:background .15s}
+.pc-action:hover{background:#333356}
+.pc-action.primary{background:#5e8af0;color:white}
+.pc-action.primary:hover{background:#4a7adf}
+.pc-tabs{display:flex;gap:4px;padding:7px 12px 3px;background:#222236}
+.pc-tab{flex:1;border:0;background:transparent;color:#73738a;padding:5px;border-radius:6px;font-size:10px;cursor:pointer}
+.pc-tab.active{background:#343450;color:#e0e0ed}
+.pc-body{padding:5px 0 7px;max-height:180px;overflow-y:auto}
+.pc-list{display:none}.pc-list.active{display:block;animation:listIn .18s ease-out}
+@keyframes listIn{from{opacity:0;transform:translateX(5px)}to{opacity:1;transform:translateX(0)}}
+.pc-item{padding:7px 13px;font-size:11px;color:#c0c0d0;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .12s,color .12s;min-height:29px}
+.pc-item:hover,.pc-item.selected{background:#5e8af0;color:white}
+.pc-item:hover .pc-sub,.pc-item.selected .pc-sub{color:#dce5ff}
+.pc-item .pc-item-icon{width:18px;text-align:center}
+.pc-item .pc-sub{font-size:10px;color:#606078;margin-left:auto}
+.pc-item.bm{color:#5e8af0}
+.pc-divider{border-top:1px solid #2a2a44;margin:3px 0}
+.pc-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2a2a44;padding:7px 13px;background:#202032;color:#707088;font-size:10px}
+.pc-footer button{border:0;background:transparent;color:#8aa8f5;font-size:10px;cursor:pointer}
+.new-file-menu{display:none;position:absolute;background:#2a2a3e;border:1px solid #3a3a4e;border-radius:10px;padding:6px 0;min-width:188px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:200;animation:cardIn .15s ease-out}
+.new-file-menu.show{display:block}.nf-item{padding:7px 14px;font-size:11px;color:#d0d0e0;cursor:pointer;display:flex;align-items:center;gap:9px}.nf-item:hover{background:#3a3a5c}
+.overlay{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:150}
+.overlay.show{display:block}
+.instructions{background:#222238;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#9090a8;line-height:1.6}
+.instructions strong{color:#e0e0e0}
+</style>
+</head>
+<body>
+<a class="back-link" href="index.html">← 返回对比页</a>
+<div class="proto-label"><span>方案 C</span> 弹出卡片式 — 可交互原型</div>
+<div class="instructions"><strong>操作说明：</strong>在 Finder 空白区域<strong>右键点击</strong> → 点击“快速导航”。紧凑卡片会在光标四周自动选择<strong>遮挡文件最少</strong>的位置；收藏与最近访问分开显示。新建文件仍是独立右键入口，避免导航卡片变高。<strong>点击外部或按 Esc 关闭。</strong></div>
+<div class="finder-window" id="finderWindow">
+<div class="finder-titlebar">
+<div class="traffic-lights"><span class="tl-red"></span><span class="tl-yellow"></span><span class="tl-green"></span></div>
+<div class="finder-title">CodexProjects</div>
+</div>
+<div class="finder-toolbar">
+<button class="tb-btn">←</button><button class="tb-btn">→</button>
+<span style="font-size:12px;color:#b0b0c0;margin-left:8px">~/Documents/Codex/CodexProjects</span>
+</div>
+<div class="finder-body">
+<div class="finder-sidebar">
+<div class="sidebar-section">个人收藏</div>
+<div class="sidebar-item"><span>📁</span> CodexProjects</div>
+<div class="sidebar-item"><span>📓</span> Obsidian Vault</div>
+<div class="sidebar-item"><span>📝</span> 课程作业</div>
+<div class="sidebar-section">iCloud</div>
+<div class="sidebar-item"><span>☁️</span> iCloud Drive</div>
+<div class="sidebar-section">位置</div>
+<div class="sidebar-item active"><span>🏠</span> mac</div>
+</div>
+<div class="finder-content" id="finderContent" oncontextmenu="return false">
+<h2>CodexProjects — 文件夹内容</h2>
+<div class="file-grid">
+<div class="file-item"><div class="file-icon">📁</div><div class="file-name">WebGIS</div></div>
+<div class="file-item"><div class="file-icon">📁</div><div class="file-name">MATLAB实验</div></div>
+<div class="file-item"><div class="file-icon">📁</div><div class="file-name">MineRadio</div></div>
+<div class="file-item"><div class="file-icon">📁</div><div class="file-name">OpenCodeX</div></div>
+<div class="file-item"><div class="file-icon">📄</div><div class="file-name">README.md</div></div>
+<div class="file-item"><div class="file-icon">📄</div><div class="file-name">.gitignore</div></div>
+<div class="file-item"><div class="file-icon">📄</div><div class="file-name">AGENTS.md</div></div>
+<div class="file-item"><div class="file-icon">⚙️</div><div class="file-name">config.json</div></div>
+</div>
+</div>
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<div class="context-menu" id="contextMenu"></div>
+<div class="new-file-menu" id="newFileMenu"></div>
+<div class="popup-card" id="popupCard">
+<div class="pc-top">
+<div class="pc-drag">⋮⋮</div>
+<div class="pc-icon">📁</div>
+<div class="pc-info">
+<div class="pc-name">CodexProjects</div>
+<div class="pc-path" id="pcPath" title="悬停查看完整路径">
+<div class="pc-path-compact"><span>⌂</span><span id="pcPathCompact">CodexProjects</span></div>
+<div class="pc-path-tooltip" id="pcPathTooltip">/Users/mac/Documents/Codex/CodexProjects</div>
+</div>
+</div>
+</div>
+<div class="pc-actions">
+<button class="pc-action" id="backAction">← 上一位置</button>
+<button class="pc-action" id="upAction">↑ 上层文件夹</button>
+<button class="pc-action primary" id="favoriteAction">☆ 收藏当前</button>
+</div>
+<div class="pc-tabs"><button class="pc-tab active" data-tab="favorites" onclick="switchTab('favorites')">⭐ 快速收藏</button><button class="pc-tab" data-tab="recent" onclick="switchTab('recent')">🕐 最近访问</button></div>
+<div class="pc-body">
+<div class="pc-list active" id="favoritesList">
+<div class="pc-item" data-path="/Users/mac/Documents/Codex"><span class="pc-item-icon">📁</span> Codex 项目<span class="pc-sub">~/Documents/Codex</span></div>
+<div class="pc-item" data-path="/Users/mac/Documents/Obsidian Vault"><span class="pc-item-icon">📓</span> Obsidian Vault<span class="pc-sub">~/Documents/Obsidian Vault</span></div>
+<div class="pc-item" data-path="/Users/mac/Documents/课程"><span class="pc-item-icon">📝</span> 课程作业<span class="pc-sub">~/Documents/课程</span></div>
+<div class="pc-item" data-path="/Users/mac/Documents/work"><span class="pc-item-icon">🌐</span> WebGIS 项目<span class="pc-sub">~/Documents/work</span></div>
+</div>
+<div class="pc-list" id="recentList">
+<div class="pc-item" data-path="/Users/mac/Downloads"><span class="pc-item-icon">📁</span> 下载<span class="pc-sub">2分钟前</span></div>
+<div class="pc-item" data-path="/Users/mac/Documents/Codex/MATLAB实验"><span class="pc-item-icon">📁</span> MATLAB实验<span class="pc-sub">15分钟前</span></div>
+<div class="pc-item" data-path="/Users/mac/Documents/work"><span class="pc-item-icon">📁</span> WebGIS<span class="pc-sub">1小时前</span></div>
+</div>
+</div>
+<div class="pc-footer"><span>可连续操作，点击外部关闭</span><button id="manageFavorites">管理收藏…</button></div>
+</div>
+</div>
+</div>
+<script>
+const finderContent = document.getElementById('finderContent');
+const finderBody = document.querySelector('.finder-body');
+const contextMenu = document.getElementById('contextMenu');
+const newFileMenu = document.getElementById('newFileMenu');
+const popupCard = document.getElementById('popupCard');
+const overlay = document.getElementById('overlay');
+const pcTop = popupCard.querySelector('.pc-top');
+const pcName = popupCard.querySelector('.pc-name');
+const pcPathCompact = document.getElementById('pcPathCompact');
+const pcPathTooltip = document.getElementById('pcPathTooltip');
+const finderTitle = document.querySelector('.finder-title');
+const finderToolbarPath = document.querySelector('.finder-toolbar span');
+let currentPath = '/Users/mac/Documents/Codex/CodexProjects';
+let dragState = null;
+
+function folderName(path) {
+  const parts = path.split('/').filter(Boolean);
+  return parts[parts.length - 1] || '/';
+}
+
+function homePath(path) {
+  return path.replace(/^\/Users\/mac/, '~');
+}
+
+function renderCurrentPath() {
+  const name = folderName(currentPath);
+  pcName.textContent = name;
+  pcPathCompact.textContent = name;
+  pcPathTooltip.textContent = currentPath;
+  finderTitle.textContent = name;
+  finderToolbarPath.textContent = homePath(currentPath);
+  document.querySelectorAll('.pc-item').forEach(item => {
+    item.classList.toggle('selected', item.dataset.path === currentPath);
+  });
+}
+
+function navigateDemo(path) {
+  currentPath = path;
+  renderCurrentPath();
+  popupCard.dataset.status = '已切换到 ' + folderName(path) + '，卡片保持打开';
+  popupCard.classList.add('show');
+}
+
+function closeAll() {
+  contextMenu.classList.remove('show');
+  newFileMenu.classList.remove('show');
+  popupCard.classList.remove('show');
+  overlay.classList.remove('show');
+  dragState = null;
+}
+finderContent.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  closeAll();
+  const bodyRect = finderBody.getBoundingClientRect();
+  const x = e.clientX - bodyRect.left;
+  const y = e.clientY - bodyRect.top;
+  contextMenu.innerHTML = `
+    <div class="ctx-item" onclick="showPopupCard(${x},${y})"><span>⚡</span> 快速导航<span class="shortcut">⌘N</span></div>
+    <div class="ctx-item" onclick="showNewFileMenu(${x},${y})"><span>📄</span> 新建文件<span class="shortcut">›</span></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item"><span>📋</span> 粘贴</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item"><span>🔍</span> 在终端中打开</div>
+    <div class="ctx-item"><span>ℹ️</span> 显示简介</div>
+  `;
+  contextMenu.style.left = Math.min(x, finderBody.clientWidth - 210) + 'px';
+  contextMenu.style.top = Math.min(y, finderBody.clientHeight - 200) + 'px';
+  contextMenu.classList.add('show');
+});
+function showPopupCard(cx, cy) {
+  contextMenu.classList.remove('show');
+  overlay.classList.add('show');
+  switchTab('favorites');
+  const cardWidth = 292;
+  const cardHeight = 286;
+  const gap = 12;
+  const clamp = (v, min, max) => Math.max(min, Math.min(v, max));
+  const candidates = [
+    {x: cx + gap, y: cy - 18},
+    {x: cx - cardWidth - gap, y: cy - 18},
+    {x: cx - cardWidth / 2, y: cy + gap},
+    {x: cx - cardWidth / 2, y: cy - cardHeight - gap}
+  ].map(p => ({x: clamp(p.x, 8, finderBody.clientWidth-cardWidth-8), y: clamp(p.y, 8, finderBody.clientHeight-cardHeight-8)}));
+  const bodyRect = finderBody.getBoundingClientRect();
+  const fileRects = [...document.querySelectorAll('.file-item')].map(el => {
+    const r = el.getBoundingClientRect();
+    return {x:r.left-bodyRect.left,y:r.top-bodyRect.top,w:r.width,h:r.height};
+  });
+  const overlap = (a,b) => Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+  const scored = candidates.map((p,index) => {
+    const card={x:p.x,y:p.y,w:cardWidth,h:cardHeight};
+    const fileOverlap=fileRects.reduce((sum,r)=>sum+overlap(card,r),0);
+    const distance=Math.hypot(p.x-cx,p.y-cy);
+    return {...p,index,score:fileOverlap*10+distance};
+  }).sort((a,b)=>a.score-b.score);
+  const {x:px,y:py,index} = scored[0];
+  popupCard.style.left = px + 'px';
+  popupCard.style.top = py + 'px';
+  popupCard.dataset.placement = ['右侧','左侧','下方','上方'][index];
+  popupCard.classList.add('show');
+}
+function switchTab(name) {
+  document.querySelectorAll('.pc-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.getElementById('favoritesList').classList.toggle('active', name === 'favorites');
+  document.getElementById('recentList').classList.toggle('active', name === 'recent');
+  popupCard.dataset.tab = name;
+}
+
+document.getElementById('backAction').addEventListener('click', () => {
+  navigateDemo('/Users/mac/Downloads');
+});
+
+document.getElementById('upAction').addEventListener('click', () => {
+  const parent = currentPath.split('/').slice(0, -1).join('/') || '/';
+  navigateDemo(parent);
+});
+
+document.getElementById('favoriteAction').addEventListener('click', function() {
+  const isFavorite = this.dataset.favorite === 'true';
+  this.dataset.favorite = String(!isFavorite);
+  this.textContent = isFavorite ? '☆ 收藏当前' : '★ 已收藏当前';
+});
+
+document.querySelectorAll('.pc-item').forEach(item => {
+  item.addEventListener('click', () => navigateDemo(item.dataset.path));
+});
+
+pcTop.addEventListener('pointerdown', event => {
+  if (event.target.closest('button')) return;
+  const cardRect = popupCard.getBoundingClientRect();
+  const bodyRect = finderBody.getBoundingClientRect();
+  dragState = {
+    pointerId: event.pointerId,
+    offsetX: event.clientX - cardRect.left,
+    offsetY: event.clientY - cardRect.top,
+    bodyRect
+  };
+  pcTop.setPointerCapture(event.pointerId);
+  event.preventDefault();
+});
+
+pcTop.addEventListener('pointermove', event => {
+  if (!dragState || dragState.pointerId !== event.pointerId) return;
+  const width = popupCard.offsetWidth;
+  const height = popupCard.offsetHeight;
+  const left = Math.max(8, Math.min(
+    event.clientX - dragState.bodyRect.left - dragState.offsetX,
+    finderBody.clientWidth - width - 8
+  ));
+  const top = Math.max(8, Math.min(
+    event.clientY - dragState.bodyRect.top - dragState.offsetY,
+    finderBody.clientHeight - height - 8
+  ));
+  popupCard.style.left = left + 'px';
+  popupCard.style.top = top + 'px';
+});
+
+pcTop.addEventListener('pointerup', event => {
+  if (dragState && dragState.pointerId === event.pointerId) {
+    pcTop.releasePointerCapture(event.pointerId);
+    dragState = null;
+  }
+});
+
+document.getElementById('manageFavorites').addEventListener('click', () => {
+  popupCard.dataset.status = '设置窗口：个人收藏';
+});
+
+function showNewFileMenu(cx, cy) {
+  contextMenu.classList.remove('show');
+  newFileMenu.innerHTML = `
+    <div class="nf-item">📁 新建文件夹</div><div class="nf-item">📝 文本文档 (.txt)</div>
+    <div class="nf-item">📋 Markdown (.md)</div><div class="nf-item">📄 Word 文档 (.docx)</div>
+    <div class="nf-item">📊 Excel 表格 (.xlsx)</div><div class="nf-item">📽 PowerPoint (.pptx)</div>`;
+  newFileMenu.style.left = Math.min(cx + 10, finderBody.clientWidth - 198) + 'px';
+  newFileMenu.style.top = Math.min(cy + 8, finderBody.clientHeight - 220) + 'px';
+  newFileMenu.classList.add('show');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.context-menu') && !e.target.closest('.new-file-menu') && !e.target.closest('.popup-card')) {
+    closeAll();
+  }
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeAll();
+});
+
+renderCurrentPath();
+</script>
+</body></html>

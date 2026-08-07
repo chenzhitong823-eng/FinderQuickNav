@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Build products
+FinderQuickNav/build/
+FinderQuickNav/build-local/
+FinderQuickNav/build-release/
+FinderQuickNav/system/
+
+# Local tool downloads and temp files
+work/tmp/
+
+# Icon cleanup intermediates (the final icon lives in App/Assets.xcassets)
+FinderQuickNav/work/icon-cleanup/
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate

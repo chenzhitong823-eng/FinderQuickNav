@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>macOS Finder 快速导航 — 原型对比</title>
+<style>
+  :root {
+    --mac-bg: #1e1e2e;
+    --mac-surface: #2a2a3c;
+    --mac-text: #e0e0e0;
+    --mac-text-secondary: #a0a0b0;
+    --mac-accent: #5e8af0;
+    --mac-border: #3a3a4e;
+    --finder-bg: #1c1c28;
+    --finder-sidebar: #222233;
+    --finder-toolbar: #28283a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: var(--mac-bg);
+    color: var(--mac-text);
+    min-height: 100vh;
+  }
+  .header { text-align: center; padding: 40px 20px 20px; }
+  .header h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+  .header p { color: var(--mac-text-secondary); font-size: 15px; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 20px 60px; }
+  .variants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .variant-card {
+    background: var(--mac-surface); border: 1px solid var(--mac-border);
+    border-radius: 16px; overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s; cursor: pointer;
+  }
+  .variant-card:hover { transform: translateY(-4px); border-color: var(--mac-accent); }
+  .variant-card:last-child { border-color: var(--mac-accent); }
+  .variant-preview {
+    height: 220px; display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .variant-info { padding: 20px; }
+  .variant-info h3 { font-size: 18px; margin-bottom: 4px; }
+  .variant-info .tag { display: inline-block; background: var(--mac-accent); color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
+  .variant-info p { color: var(--mac-text-secondary); font-size: 13px; line-height: 1.5; }
+  .variant-info .btn { display: inline-block; margin-top: 12px; padding: 8px 16px; background: var(--mac-accent); color: white; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 500; }
+  .preview-a, .preview-b, .preview-c { background: #1c1c28; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .mini-panel { background: #2a2a3c; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); padding: 14px; width: 180px; }
+  .mini-panel .row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 11px; color: #c0c0d0; }
+  .mini-panel .row .icon { width: 16px; text-align: center; opacity: 0.7; }
+  .mini-panel .divider { border-top: 1px solid #3a3a4e; margin: 6px 0; }
+  .mini-panel .section-title { font-size: 10px; color: #707088; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 0; }
+  .mini-sidebar { background: #222233; border-radius: 8px 0 0 8px; padding: 12px; width: 160px; height: 160px; box-shadow: -4px 0 20px rgba(0,0,0,0.4); }
+  .mini-sidebar .s-row { font-size: 10px; color: #b0b0c0; padding: 3px 6px; border-radius: 4px; }
+  .mini-sidebar .s-row.active { background: #3a3a5c; }
+  .mini-sidebar .s-title { font-size: 9px; color: #606078; padding: 4px 6px; text-transform: uppercase; }
+  .mini-card { background: #2a2a3c; border-radius: 14px; padding: 16px 14px; width: 190px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); text-align: center; }
+  .mini-card .big-icon { font-size: 28px; margin-bottom: 6px; }
+  .mini-card .label { font-size: 12px; color: #c0c0d0; }
+  .recommended-badge { position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg, #5e8af0, #8b5cf6); color: white; font-size: 10px; padding: 3px 10px; border-radius: 10px; font-weight: 600; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+<div class="header"><h1>⚡ Finder 快速导航 — 原型对比</h1><p>三种交互方案，点击卡片进入可交互原型</p></div>
+<div class="container"><div class="variants">
+<div class="variant-card" onclick="location.href='variant-a.html'">
+<div class="variant-preview"><div class="preview-a"><div class="mini-panel">
+<div class="row"><span class="icon">←</span> 返回"下载"</div>
+<div class="row"><span class="icon">↑</span> 上一级"项目"</div>
+<div class="divider"></div>
+<div class="section-title">我的收藏</div>
+<div class="row"><span class="icon">⭐</span> Codex 项目</div>
+<div class="row"><span class="icon">📓</span> Obsidian</div>
+<div class="divider"></div>
+<div class="row" style="color:#5e8af0"><span class="icon">☆</span> 收藏当前文件夹</div>
+</div></div></div>
+<div class="variant-info"><span class="tag">方案 A</span><h3>浮动面板式</h3><p>右键 → "快速导航" → 弹出悬浮面板。路径、收藏、最近访问集中在一个紧凑面板中，不遮挡主窗口。</p><a class="btn" href="variant-a.html">打开原型 →</a></div>
+</div>
+<div class="variant-card" onclick="location.href='variant-b.html'">
+<div class="variant-preview"><div class="preview-b"><div class="mini-sidebar">
+<div class="s-title">快速导航</div><div class="s-row active">← 返回上一位置</div><div class="s-row">↑ 上级目录</div>
+<div class="s-title">收藏</div><div class="s-row">⭐ Codex 项目</div><div class="s-row">📓 Obsidian</div><div class="s-row">📝 课程作业</div>
+<div class="s-title">最近</div><div class="s-row">WebGIS</div><div class="s-row">下载</div>
+</div></div></div>
+<div class="variant-info"><span class="tag">方案 B</span><h3>侧边栏式</h3><p>右键激活后，Finder 窗口左侧滑出导航边栏。内容更丰富，适合频繁切换目录的深度操作。</p><a class="btn" href="variant-b.html">打开原型 →</a></div>
+</div>
+<div class="variant-card" onclick="location.href='variant-c.html'">
+<div class="variant-preview"><div class="preview-c"><div class="mini-card">
+<div class="big-icon">📁</div><div class="label">Codex 项目</div>
+<div style="color:#707088;font-size:10px;margin:4px 0">~/Documents/Codex</div>
+<div style="display:flex;gap:6px;margin-top:8px;justify-content:center">
+<span style="background:#3a3a5c;padding:2px 8px;border-radius:6px;font-size:10px">← 返回</span>
+<span style="background:#3a3a5c;padding:2px 8px;border-radius:6px;font-size:10px">↑ 上级</span>
+<span style="background:#5e8af0;padding:2px 8px;border-radius:6px;font-size:10px">☆ 收藏</span>
+</div></div></div></div>
+<div class="variant-info"><span class="tag">方案 C · 已选定</span><h3>低遮挡弹出卡片式</h3><p>右键空白处选择快速导航后，紧凑卡片自动选择遮挡最少的位置。收藏与最近访问分页显示，新建文件继续保留为独立右键入口。</p><a class="btn" href="variant-c.html">打开原型 →</a></div>
+</div>
+</div></div>
+</body></html>
