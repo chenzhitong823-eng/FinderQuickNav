@@ -6,6 +6,7 @@ FinderQuickNav/build/
 FinderQuickNav/build-local/
 FinderQuickNav/build-release/
 FinderQuickNav/system/
+system/
 
 # Local tool downloads and temp files
 work/tmp/

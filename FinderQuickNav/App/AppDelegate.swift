@@ -197,8 +197,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func revealInFinder(_ file: URL) throws {
+        // Activation is asynchronous. The reveal operation targets Finder
+        // explicitly via Apple Events, so it need not wait for the frontmost
+        // application to change (unlike a globally posted keyboard shortcut).
         guard finderController.isFinderFrontmost
-                || (finderController.activateFinder() && finderController.isFinderFrontmost) else {
+                || finderController.activateFinder() else {
             throw FinderNavigationError.finderNotFrontmost
         }
         try finderController.reveal(file)

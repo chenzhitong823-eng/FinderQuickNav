@@ -83,4 +83,23 @@ var deduplicator = QuickNavRequestDeduplicator()
 expect(deduplicator.accept(request.id), "First request ID should be accepted")
 expect(!deduplicator.accept(request.id), "Second request ID should be rejected")
 
+// The bridge and the pending store may deliver the same new-file action.
+// After the cache fills, every recent request must still execute only once.
+let requestIDs = (0..<512).map { _ in UUID() }
+var rollingDeduplicator = QuickNavRequestDeduplicator()
+for (index, id) in requestIDs.enumerated() {
+    expect(rollingDeduplicator.accept(id), "A new request should be accepted")
+    let recentStart = max(0, index - 127)
+    for recentID in requestIDs[recentStart...index] {
+        expect(
+            !rollingDeduplicator.accept(recentID),
+            "A duplicate among the latest 128 requests must never be replayed"
+        )
+    }
+}
+expect(
+    rollingDeduplicator.accept(requestIDs[0]),
+    "Old IDs must eventually be evicted so memory remains bounded"
+)
+
 print("quick nav request codec smoke test passed")

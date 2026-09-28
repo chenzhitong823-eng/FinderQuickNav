@@ -13,11 +13,6 @@ enum HostSessionEnsurer {
     }
 
     static func ensureRunning() {
-        let running = NSRunningApplication.runningApplications(
-            withBundleIdentifier: QuickNavHostLaunch.bundleIdentifier
-        )
-        guard running.isEmpty else { return }
-
         // Extension bundle:
         //   .../FinderQuickNav.app/Contents/PlugIns/FinderQuickNavExtension.appex
         guard let hostURL = hostURL(forExtensionBundle: Bundle.main.bundleURL) else {
@@ -25,6 +20,13 @@ enum HostSessionEnsurer {
                 "FQN host launch aborted invalidHostURL=%@",
                 Bundle.main.bundleURL.path
             )
+            return
+        }
+
+        let running = NSRunningApplication.runningApplications(
+            withBundleIdentifier: QuickNavHostLaunch.bundleIdentifier
+        )
+        if isExpectedHostRunning(hostURL, among: running.compactMap(\.bundleURL)) {
             return
         }
 
@@ -40,5 +42,17 @@ enum HostSessionEnsurer {
                 NSLog("FQN host launched pid=%d", application.processIdentifier)
             }
         }
+    }
+
+    static func isExpectedHostRunning(
+        _ expectedHostURL: URL,
+        among runningBundleURLs: [URL]
+    ) -> Bool {
+        let expectedPath = canonicalPath(for: expectedHostURL)
+        return runningBundleURLs.contains { canonicalPath(for: $0) == expectedPath }
+    }
+
+    private static func canonicalPath(for url: URL) -> String {
+        url.standardizedFileURL.resolvingSymlinksInPath().path
     }
 }

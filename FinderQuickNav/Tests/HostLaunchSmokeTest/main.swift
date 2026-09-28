@@ -35,4 +35,27 @@ expect(
     "host URL must be nil when no enclosing .app exists"
 )
 
+let installedHostURL = URL(
+    fileURLWithPath: "/Users/mac/Applications/FinderQuickNav.app",
+    isDirectory: true
+)
+let staleArchivedHostURL = URL(
+    fileURLWithPath: "/Users/mac/Documents/project/FinderQuickNav/system/archive/FinderQuickNav-before-bridge.app",
+    isDirectory: true
+)
+expect(
+    !HostSessionEnsurer.isExpectedHostRunning(
+        installedHostURL,
+        among: [staleArchivedHostURL]
+    ),
+    "an archived app with the same bundle ID must not suppress the installed host launch"
+)
+expect(
+    HostSessionEnsurer.isExpectedHostRunning(
+        installedHostURL,
+        among: [installedHostURL]
+    ),
+    "the enclosing installed app must be recognized as the running host"
+)
+
 print("host launch smoke test passed")

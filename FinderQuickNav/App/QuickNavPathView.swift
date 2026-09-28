@@ -112,7 +112,7 @@ struct QuickNavPathView: View {
     }
 
     private func copyCurrentPath() {
-        QuickNavPathCopyService.copy(display.fullPath)
+        _ = QuickNavPathCopyService.copy(display.fullPath)
         copyFeedbackTask?.cancel()
         withAnimation(.easeOut(duration: 0.12)) {
             copiedPath = true

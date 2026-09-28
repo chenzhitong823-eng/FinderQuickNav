@@ -6,6 +6,15 @@ script_dir="${0:A:h}"
 project_dir="${script_dir:h}"
 configuration="${FQN_CONFIGURATION:-Debug}"
 signing_identity="${FQN_SIGNING_IDENTITY:-FinderQuickNav Local Signing}"
+if [[ "${signing_identity}" != '-' ]]; then
+    available_identities="$(security find-identity -v -p codesigning)"
+    if [[ "${available_identities}" != *"${signing_identity}"* ]]; then
+        print -u2 -r -- "Code-signing identity not found: ${signing_identity}"
+        print -u2 'Use security find-identity -v -p codesigning, then set FQN_SIGNING_IDENTITY to your local identity.'
+        print -u2 'For compilation checks without a certificate, see the unsigned xcodebuild command in README.md.'
+        exit 1
+    fi
+fi
 derived_data="$(mktemp -d "${TMPDIR:-/tmp}/finderquicknav-derived.XXXXXX")"
 trap 'rm -rf "${derived_data}"' EXIT
 

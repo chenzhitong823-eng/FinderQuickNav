@@ -27,6 +27,7 @@
 
 ## Test commands
 
+- 全量回归统一使用 `zsh FinderQuickNav/scripts/run-tests.sh`；可用 `FQN_TEST_LOG_DIR` 保存逐项日志，失败必须返回非零退出码。
 - 原型脚本语法检查：用已登记的 Node.js 读取 HTML 中的 `<script>` 并通过 `new Function(...)` 编译。
 - 正式工程创建后：`xcodebuild test -scheme FinderQuickNav -destination 'platform=macOS'`。
 - Finder 集成必须在真实 Finder 空白区域右键验收，不能只依赖单元测试。
@@ -50,11 +51,16 @@
 
 ## Common pitfalls
 
+- 安装路径使用当前用户主目录或 `FQN_INSTALL_DIR`；禁止把开发机用户名写死到安装脚本。
+- `pluginkit` 只有一个注册项不等于可用：还必须已启用且指向预期完整路径；安装更新后须检查真实菜单是否缓存了旧扩展实例。
+- 请求去重缓存必须按时间顺序淘汰，不能用无序 `Set.removeFirst()` 代替 FIFO，否则近期请求可能重复执行。
+- `NSRunningApplication.activate` 成功表示激活请求获准，不保证前台已同步切换；明确发给 Finder 的 Apple Event 与全局键盘事件须分别处理。
 - Finder Sync 只在已监控目录及其子目录中提供菜单；首版默认覆盖用户主目录。
 - `.contextualMenuForContainer` 才是 Finder 空白处右键，不要误用文件项菜单。
 - Finder Sync 不是通用 Finder UI 注入框架，卡片应由宿主应用的非激活 `NSPanel` 承载。
 - Finder Sync 可能同时为 Finder 和打开/保存面板创建多个扩展进程，不要在扩展内保存复杂状态。
 - 同一个 bundle ID 可能残留多个 build 副本；部署前运行 `scripts/verify-extension-registration.sh`，必须只剩一个注册项。
+- 即使 Finder 扩展只注册一项，归档目录中同 bundle ID 的旧宿主仍可能作为运行进程干扰“宿主是否已启动”的判断；`HostSessionEnsurer` 必须比较扩展所属 `.app` 的规范化完整路径，不能只按 bundle ID 判定。
 - App Group entitlement 在没有 provisioning profile 时会让普通 `xcodebuild build` 直接失败；不要删除 entitlement，应使用 `scripts/build-local.sh`，并把这个限制写入交接记录。
 - 返回、上一级、当前窗口跳转需要真实 Finder 权限与集成验证。
 - 原生工程必须通过实际 `xcodebuild` 后才能声称可以构建。

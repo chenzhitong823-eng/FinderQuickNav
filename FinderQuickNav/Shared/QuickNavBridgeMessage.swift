@@ -120,13 +120,17 @@ enum QuickNavBridgeCodec {
 
 struct QuickNavRequestDeduplicator {
     private var seenIDs: Set<UUID> = []
+    private var acceptedIDs: [UUID] = []
     private let maximumRememberedIDs = 128
 
     mutating func accept(_ id: UUID) -> Bool {
         guard !seenIDs.contains(id) else { return false }
         seenIDs.insert(id)
-        if seenIDs.count > maximumRememberedIDs {
-            seenIDs.removeFirst()
+        acceptedIDs.append(id)
+        if acceptedIDs.count > maximumRememberedIDs {
+            // Set iteration order is arbitrary: removing its first element
+            // can evict a request that has only just been accepted.
+            seenIDs.remove(acceptedIDs.removeFirst())
         }
         return true
     }
