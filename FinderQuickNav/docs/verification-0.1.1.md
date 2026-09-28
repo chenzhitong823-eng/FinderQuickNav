@@ -49,3 +49,7 @@ zsh FinderQuickNav/scripts/verify-extension-registration.sh
 ```
 
 构建需要已有签名身份；其他机器先阅读 README 的签名说明。自动回归不要求在本机安装扩展。
+
+## GitHub 发布验证
+
+实现提交 [`780cea4`](https://github.com/chenzhitong823-eng/FinderQuickNav/commit/780cea457e63e76fc2448a3550638c8a90e2a02c) 已推送至 main；GitHub API 回读提交 SHA 一致，更新记录文件已核验。此验收完成记录由后续文档提交同步，不改变已验证二进制。
