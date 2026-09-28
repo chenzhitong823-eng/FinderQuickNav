@@ -30,8 +30,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: local.finderquicknav.app
         PRODUCT_NAME: FinderQuickNav
-        MARKETING_VERSION: "0.1.1"
-        CURRENT_PROJECT_VERSION: "2"
+        MARKETING_VERSION: "0.1.2"
+        CURRENT_PROJECT_VERSION: "3"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: App/Info.plist
         CODE_SIGN_ENTITLEMENTS: App/FinderQuickNav.entitlements
@@ -51,8 +51,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: local.finderquicknav.app.extension
         PRODUCT_NAME: FinderQuickNavExtension
-        MARKETING_VERSION: "0.1.1"
-        CURRENT_PROJECT_VERSION: "2"
+        MARKETING_VERSION: "0.1.2"
+        CURRENT_PROJECT_VERSION: "3"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Extension/Info.plist
         CODE_SIGN_ENTITLEMENTS: Extension/FinderQuickNavExtension.entitlements

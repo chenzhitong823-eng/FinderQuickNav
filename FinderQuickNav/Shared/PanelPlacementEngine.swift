@@ -4,22 +4,17 @@ enum PanelPlacementEngine {
     static func frame(
         panelSize: CGSize,
         mouseLocation: CGPoint,
-        visibleFrame: CGRect,
-        gap: CGFloat = 12
+        visibleFrame: CGRect
     ) -> CGRect {
-        var x = mouseLocation.x + gap
-        if x + panelSize.width > visibleFrame.maxX {
-            x = mouseLocation.x - panelSize.width - gap
-        }
+        let x = min(
+            max(mouseLocation.x - panelSize.width / 2, visibleFrame.minX),
+            visibleFrame.maxX - panelSize.width
+        )
+        let y = min(
+            max(mouseLocation.y - panelSize.height / 2, visibleFrame.minY),
+            visibleFrame.maxY - panelSize.height
+        )
 
-        var y = mouseLocation.y - panelSize.height - gap
-        if y < visibleFrame.minY {
-            y = mouseLocation.y + gap
-        }
-
-        x = min(max(x, visibleFrame.minX), visibleFrame.maxX - panelSize.width)
-        y = min(max(y, visibleFrame.minY), visibleFrame.maxY - panelSize.height)
-
-        return CGRect(origin: CGPoint(x: x, y: y), size: panelSize).integral
+        return CGRect(origin: CGPoint(x: x, y: y), size: panelSize)
     }
 }

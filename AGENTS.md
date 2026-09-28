@@ -58,6 +58,7 @@
 - Finder Sync 只在已监控目录及其子目录中提供菜单；首版默认覆盖用户主目录。
 - `.contextualMenuForContainer` 才是 Finder 空白处右键，不要误用文件项菜单。
 - Finder Sync 不是通用 Finder UI 注入框架，卡片应由宿主应用的非激活 `NSPanel` 承载。
+- Finder Sync 只能排列本扩展返回的菜单项，没有公开接口指定整张 Finder 右键菜单中的位置；“快速导航”保持本扩展第一项，不承诺排在系统项或其他扩展之前。
 - Finder Sync 可能同时为 Finder 和打开/保存面板创建多个扩展进程，不要在扩展内保存复杂状态。
 - 同一个 bundle ID 可能残留多个 build 副本；部署前运行 `scripts/verify-extension-registration.sh`，必须只剩一个注册项。
 - 即使 Finder 扩展只注册一项，归档目录中同 bundle ID 的旧宿主仍可能作为运行进程干扰“宿主是否已启动”的判断；`HostSessionEnsurer` 必须比较扩展所属 `.app` 的规范化完整路径，不能只按 bundle ID 判定。
@@ -68,7 +69,7 @@
 ## User preferences
 
 - 已确定采用方案 C。
-- 卡片必须贴近右键位置，但优先降低对文件图标的遮挡。
+- 2026-09-28 新要求：卡片中心对准点击“快速导航”时的鼠标位置；仅在屏幕边缘调整以保持完整可见。此要求取代此前鼠标旁边偏移的定位偏好。
 - 收藏与最近访问分页显示；新建文件保留为独立右键入口。
 - 目录跳转应尽量发生在当前 Finder 窗口，不额外打开窗口。
 - 后续由 DeepSeek 接续时，直接读取 `docs/任务进程.md` 并执行第一条未完成任务。
